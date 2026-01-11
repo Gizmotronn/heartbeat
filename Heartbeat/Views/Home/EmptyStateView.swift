@@ -40,7 +40,7 @@ struct EmptyStateView: View {
                             Spacer()
                             Button(action: {
                                 person.isArchived = false
-                                try? (person as? ObservableObject)?.objectWillChange.send()
+                                // Optionally trigger a save on the model context if needed
                             }) {
                                 Text("Unarchive")
                                     .font(.caption)

@@ -17,24 +17,42 @@ struct AddDateFormView: View {
     @Binding var notes: String
     @Binding var dateType: DateType
     @Binding var showingLocationSearch: Bool
+    var isEditing: Bool = false
     
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
-        VStack(spacing: 20) {
-            LocationSearchButton(
-                location: $location,
-                latitude: $latitude,
-                longitude: $longitude,
-                showingLocationSearch: $showingLocationSearch
-            )
-            
-            DateTimePickerView(date: $date, time: $time)
-            
-            DateTypePickerView(dateType: $dateType)
-            
+        VStack(spacing: 32) {
+            ZStack {
+                Color.clear
+                LocationSearchButton(
+                    location: $location,
+                    latitude: $latitude,
+                    longitude: $longitude,
+                    showingLocationSearch: $showingLocationSearch
+                )
+            }
+            .frame(width: 420, height: 90)
+            .padding(.horizontal)
+
+            ZStack {
+                Color.clear
+                DateTimePickerView(date: $date, time: $time)
+            }
+            .frame(width: 420, height: 90)
+            .padding(.horizontal)
+
+            ZStack {
+                Color.clear
+                DateTypePickerView(dateType: $dateType, isEditing: isEditing)
+            }
+            .frame(width: 420, height: 90)
+            .padding(.horizontal)
+
             if combinedDateTime <= Date() {
                 NotesInputView(notes: $notes)
+                    .frame(width: 420)
+                    .padding(.horizontal)
             }
         }
     }
@@ -160,34 +178,52 @@ struct DateTimePickerView: View {
 
 struct DateTypePickerView: View {
     @Binding var dateType: DateType
+    var isEditing: Bool = false
+    @State private var showAllOptions = false
     @Environment(\.colorScheme) private var colorScheme
-    
+
     var body: some View {
         VStack(spacing: 16) {
             Text("DATE TYPE")
                 .font(AppStyle.Fonts.body)
                 .foregroundColor(AppStyle.Colors.textSecondary(for: colorScheme))
-            
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 80), spacing: 8)], spacing: 8) {
-                ForEach(DateType.allCases, id: \.self) { type in
-                    Button(action: {
-                        dateType = type
-                    }) {
-                        VStack(spacing: 8) {
-                            Text(type.displayName)
-                                .font(AppStyle.Fonts.caption)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(dateType == type ? type.accentColor.opacity(0.2) : AppStyle.Colors.surface(for: colorScheme))
-                        .overlay {
-                            Rectangle()
-                                .stroke(dateType == type ? type.accentColor : AppStyle.Colors.borderColor, lineWidth: dateType == type ? 2 : AppStyle.Layout.borderWidth)
-                        }
+
+            if isEditing && !showAllOptions {
+                HStack(spacing: 12) {
+                    Text(dateType.displayName)
+                        .font(AppStyle.Fonts.body)
+                        .foregroundColor(AppStyle.Colors.textPrimary(for: colorScheme))
+                        .frame(minWidth: 100, minHeight: 48)
+                        .background(dateType.accentColor.opacity(0.2))
+                        .cornerRadius(8)
+                    Button("Change type") {
+                        showAllOptions = true
                     }
-                    .foregroundColor(AppStyle.Colors.textPrimary(for: colorScheme))
+                    .buttonStyle(PrimaryButtonStyle())
+                    .frame(minWidth: 100, minHeight: 48)
+                }
+            } else {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 8)], spacing: 8) {
+                    ForEach(DateType.allCases, id: \.self) { type in
+                        Button(action: {
+                            dateType = type
+                            if isEditing { showAllOptions = false }
+                        }) {
+                            VStack(spacing: 8) {
+                                Text(type.displayName)
+                                    .font(AppStyle.Fonts.caption)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(minWidth: 100, minHeight: 48)
+                            .background(dateType == type ? type.accentColor.opacity(0.2) : AppStyle.Colors.surface(for: colorScheme))
+                            .overlay {
+                                Rectangle()
+                                    .stroke(dateType == type ? type.accentColor : AppStyle.Colors.borderColor, lineWidth: dateType == type ? 2 : AppStyle.Layout.borderWidth)
+                            }
+                        }
+                        .foregroundColor(AppStyle.Colors.textPrimary(for: colorScheme))
+                    }
                 }
             }
         }

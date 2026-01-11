@@ -58,7 +58,8 @@ struct EditDateView: View {
                         time: $time,
                         notes: $notes,
                         dateType: $dateType,
-                        showingLocationSearch: $showingLocationSearch
+                        showingLocationSearch: $showingLocationSearch,
+                        isEditing: true
                     )
                     
                     Spacer()

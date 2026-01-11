@@ -32,13 +32,13 @@ struct PersonDetailView: View {
                     // Header with photo and basic info
                     PersonHeaderView(person: person)
                     
-                    // Upcoming dates section
-                    let upcomingDates = person.previousDates.filter { $0.fullDateTime > Date() }
-                    if !upcomingDates.isEmpty {
+                    // Planned dates section (future)
+                    let plannedDates = person.previousDates.filter { $0.fullDateTime > Date() }
+                    if !plannedDates.isEmpty {
                         UpcomingDatesView(person: person)
                     }
-                    
-                    // Previous dates section
+
+                    // Previous dates section (past)
                     let pastDates = person.previousDates.filter { $0.fullDateTime <= Date() }
                     if !pastDates.isEmpty {
                         PreviousDatesView(person: person)
@@ -88,7 +88,7 @@ struct PersonDetailView: View {
             SettingsPanel
         }
         .sheet(isPresented: $showingAddDate) {
-            AddDateView(person: person)
+            DateCreationView(viewModel: DateCreationViewModel(), person: person)
         }
         .sheet(isPresented: $showingAppleIntelligenceOverview) {
             AppleIntelligenceOverviewView(person: person)
