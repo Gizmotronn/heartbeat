@@ -217,14 +217,16 @@ final class DatePerson {
     var meetingDate: Date
     var previousDates: [PreviousDate]
     var createdAt: Date
-    
-    init(name: String, phoneNumber: String = "", photoData: Data? = nil, meetingDate: Date, previousDates: [PreviousDate] = []) {
+    var isArchived: Bool = false
+
+    init(name: String, phoneNumber: String = "", photoData: Data? = nil, meetingDate: Date, previousDates: [PreviousDate] = [], isArchived: Bool = false) {
         self.name = name
         self.phoneNumber = phoneNumber
         self.photoData = photoData
         self.meetingDate = meetingDate
         self.previousDates = previousDates
         self.createdAt = Date()
+        self.isArchived = isArchived
     }
     
     var profileImage: Image? {
@@ -246,14 +248,18 @@ final class PreviousDate {
     var notes: String
     var dateType: DateType?
     var person: DatePerson?
-    
+
     // New detailed fields for past dates
-    var discussionPoints: [String]
+        var discussionPointsRaw: String = ""
+        var discussionPoints: [String] {
+            get { discussionPointsRaw.isEmpty ? [] : discussionPointsRaw.components(separatedBy: "|") }
+            set { discussionPointsRaw = newValue.joined(separator: "|") }
+        }
     var emotions: [EmotionEntry]
     var journalEntry: String
     var gifts: [Gift]
     var physicalTouchMoments: [PhysicalTouchMoment]
-    
+
     init(location: String, latitude: Double? = nil, longitude: Double? = nil, date: Date, time: Date, notes: String = "", dateType: DateType = .dinner, discussionPoints: [String] = [], emotions: [EmotionEntry] = [], journalEntry: String = "", gifts: [Gift] = [], physicalTouchMoments: [PhysicalTouchMoment] = []) {
         self.location = location
         self.latitude = latitude
@@ -262,7 +268,7 @@ final class PreviousDate {
         self.time = time
         self.notes = notes
         self.dateType = dateType
-        self.discussionPoints = discussionPoints
+            self.discussionPointsRaw = discussionPoints.joined(separator: "|")
         self.emotions = emotions
         self.journalEntry = journalEntry
         self.gifts = gifts

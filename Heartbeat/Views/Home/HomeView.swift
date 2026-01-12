@@ -16,19 +16,18 @@ struct HomeView: View {
     @State private var showingOnboarding = false
     @State private var showingArchive = false
     
-    // Computed property to find the current person (most recent date)
+    // Computed property to find the current person (most recent date, not archived)
     private var currentPerson: DatePerson? {
-        return datePeople.max { person1, person2 in
+        return datePeople.filter { !$0.isArchived }.max { person1, person2 in
             let person1LastDate = person1.previousDates.map(\.date).max() ?? person1.meetingDate
             let person2LastDate = person2.previousDates.map(\.date).max() ?? person2.meetingDate
             return person1LastDate < person2LastDate
         }
     }
-    
-    // Computed property to get archived people (everyone except current)
+
+    // Computed property to get archived people (isArchived == true)
     private var archivedPeople: [DatePerson] {
-        guard let current = currentPerson else { return datePeople }
-        return datePeople.filter { $0.id != current.id }
+        return datePeople.filter { $0.isArchived }
     }
     
     var body: some View {
@@ -37,8 +36,9 @@ struct HomeView: View {
                 AppStyle.Colors.background(for: colorScheme)
                     .ignoresSafeArea()
                 
-                if datePeople.isEmpty {
-                    EmptyStateView(showingOnboarding: $showingOnboarding)
+                if datePeople.isEmpty || (!datePeople.isEmpty && currentPerson == nil) {
+                    // Show empty state if there are no people, or all are archived
+                    EmptyStateView(showingOnboarding: $showingOnboarding, archivedPeople: archivedPeople)
                 } else if let current = currentPerson {
                     // Show current person's profile directly
                     PersonDetailView(person: current)

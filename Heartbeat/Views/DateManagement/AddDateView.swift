@@ -18,13 +18,18 @@ struct AddDateView: View {
     @State private var location = ""
     @State private var latitude: Double?
     @State private var longitude: Double?
-    @State private var date = {
-        Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-    }()
+    @State private var date = Date()
     @State private var time = Date()
     @State private var notes = ""
     @State private var dateType: DateType = .dinner
     @State private var showingLocationSearch = false
+    @State private var dateKind: DateKind = .future
+
+    enum DateKind: String, CaseIterable, Identifiable {
+        case past = "Past Date"
+        case future = "Planned Date"
+        var id: String { self.rawValue }
+    }
     
     var body: some View {
         NavigationView {
@@ -34,7 +39,22 @@ struct AddDateView: View {
                 
                 VStack(spacing: 24) {
                     AddDateHeaderView(personName: person.name)
-                    
+
+                    Picker("Date Type", selection: $dateKind) {
+                        ForEach(DateKind.allCases) { kind in
+                            Text(kind.rawValue).tag(kind)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.bottom, 8)
+                    .onChange(of: dateKind) { _, newKind in
+                        if newKind == .future && date < Date() {
+                            date = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+                        } else if newKind == .past && date > Date() {
+                            date = Date()
+                        }
+                    }
+
                     AddDateFormView(
                         location: $location,
                         latitude: $latitude,
@@ -45,9 +65,9 @@ struct AddDateView: View {
                         dateType: $dateType,
                         showingLocationSearch: $showingLocationSearch
                     )
-                    
+
                     Spacer()
-                    
+
                     AddDateActionButtons(
                         location: location,
                         onCancel: { dismiss() },

@@ -9,27 +9,53 @@ import SwiftUI
 
 struct EmptyStateView: View {
     @Binding var showingOnboarding: Bool
+    var archivedPeople: [DatePerson]
     @Environment(\.colorScheme) private var colorScheme
-    
+
     var body: some View {
         VStack(spacing: 32) {
-            VStack(spacing: 16) {
-                Text("💕")
-                    .font(.system(size: 80))
-                
-                Text("READY FOR YOUR\nFIRST DATE NIGHT?")
-                    .font(AppStyle.Fonts.title)
-                    .foregroundColor(AppStyle.Colors.textPrimary(for: colorScheme))
-                    .multilineTextAlignment(.center)
-                
-                Text("Let's add your special someone and start tracking those magical moments together.")
-                    .font(AppStyle.Fonts.body)
-                    .foregroundColor(AppStyle.Colors.textSecondary(for: colorScheme))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
+            Text("Love is in the air")
+                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .foregroundColor(.red)
+                .multilineTextAlignment(.center)
+                .padding(.top, 16)
+            Image("EmptyStateIllustration")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 300, maxHeight: 300)
+                .padding(.horizontal, 24)
+
+            if !archivedPeople.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("ARCHIVED")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                        .padding(.top, 8)
+                    ForEach(archivedPeople, id: \.id) { person in
+                        HStack {
+                            Text(person.name)
+                                .font(.body)
+                                .foregroundColor(.gray)
+                                .padding(.vertical, 2)
+                            Spacer()
+                            Button(action: {
+                                person.isArchived = false
+                                try? (person as? ObservableObject)?.objectWillChange.send()
+                            }) {
+                                Text("Unarchive")
+                                    .font(.caption)
+                                    .foregroundColor(.accentColor)
+                                    .padding(6)
+                                    .background(Color(.systemGray5))
+                                    .cornerRadius(6)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
             }
-            
-            Button("START YOUR FIRST DATE NIGHT") {
+
+            Button("GET STARTED") {
                 showingOnboarding = true
             }
             .buttonStyle(PrimaryButtonStyle())

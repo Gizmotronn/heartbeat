@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct UpcomingDatesView: View {
     let person: DatePerson
@@ -115,16 +116,33 @@ struct UpcomingDateCardView: View {
 struct PreviousDatesView: View {
     let person: DatePerson
     @Environment(\.colorScheme) private var colorScheme
-    
+    @Environment(\.modelContext) private var modelContext
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("PREVIOUS DATES")
                 .font(AppStyle.Fonts.heading)
                 .foregroundColor(AppStyle.Colors.textPrimary(for: colorScheme))
-            
+
             let pastDates = person.previousDates.filter { $0.fullDateTime <= Date() }.sorted(by: { $0.fullDateTime > $1.fullDateTime })
-            ForEach(pastDates) { previousDate in
-                DateCardView(previousDate: previousDate, person: person)
+            if !pastDates.isEmpty {
+                VStack(spacing: 16) {
+                    ForEach(pastDates) { previousDate in
+                        HStack(alignment: .top) {
+                            DateCardView(previousDate: previousDate, person: person)
+                            Button(action: {
+                                if let idx = person.previousDates.firstIndex(where: { $0 === previousDate }) {
+                                    person.previousDates.remove(at: idx)
+                                    modelContext.delete(previousDate)
+                                }
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                                    .padding(.top, 8)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

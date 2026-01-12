@@ -116,27 +116,28 @@ struct PreviousDatesStep: View {
                 .toggleStyle(SwitchToggleStyle(tint: AppStyle.Colors.accent))
             
             if hasPreviousDates {
-                ScrollView {
-                    VStack(spacing: 16) {
-                        ForEach(previousDates.indices, id: \.self) { index in
-                            PreviousDateCard(
-                                dateInput: $previousDates[index],
-                                onRemove: {
-                                    previousDates.remove(at: index)
-                                    if previousDates.isEmpty {
-                                        hasPreviousDates = false
+                GeometryReader { geometry in
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            ForEach(previousDates.indices, id: \.self) { index in
+                                PreviousDateCard(
+                                    dateInput: $previousDates[index],
+                                    onRemove: {
+                                        previousDates.remove(at: index)
+                                        if previousDates.isEmpty {
+                                            hasPreviousDates = false
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
+                            Button("ADD DATE") {
+                                previousDates.append(PreviousDateInput())
+                            }
+                            .buttonStyle(SecondaryButtonStyle())
                         }
-                        
-                        Button("ADD DATE") {
-                            previousDates.append(PreviousDateInput())
-                        }
-                        .buttonStyle(SecondaryButtonStyle())
+                        .frame(minHeight: geometry.size.height)
                     }
                 }
-                .frame(maxHeight: 300)
             }
         }
         .onChange(of: hasPreviousDates) { _, newValue in
@@ -206,24 +207,61 @@ struct PreviousDateCard: View {
     @Binding var dateInput: PreviousDateInput
     let onRemove: () -> Void
     @Environment(\.colorScheme) private var colorScheme
+    @State private var showingLocationSearch = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("DATE #\(dateInput.id)")
-                    .font(AppStyle.Fonts.heading)
-                    .foregroundColor(AppStyle.Colors.textPrimary(for: colorScheme))
-                
                 Spacer()
-                
                 Button("REMOVE") {
                     onRemove()
                 }
                 .buttonStyle(SecondaryButtonStyle())
             }
             
-            TextField("Location", text: $dateInput.location)
-                .textFieldStyle(CustomTextFieldStyle())
+            Button(action: {
+                showingLocationSearch = true
+            }) {
+                HStack {
+                    Text(dateInput.location.isEmpty ? "TAP TO SEARCH LOCATION" : dateInput.location.uppercased())
+                        .font(AppStyle.Fonts.body)
+                        .foregroundColor(dateInput.location.isEmpty ? AppStyle.Colors.textSecondary(for: colorScheme) : AppStyle.Colors.textPrimary(for: colorScheme))
+                    Spacer()
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(AppStyle.Colors.accent)
+                }
+                .padding(20)
+                .background(AppStyle.Colors.surface(for: colorScheme))
+                .overlay {
+                    Rectangle()
+                        .stroke(AppStyle.Colors.borderColor, lineWidth: AppStyle.Layout.borderWidth)
+                }
+                .shadow(
+                    color: AppStyle.Colors.shadowColor,
+                    radius: 0,
+                    x: 3,
+                    y: 3
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .sheet(isPresented: $showingLocationSearch) {
+                LocationSearchView(
+                    selectedLocation: Binding(
+                        get: { dateInput.location },
+                        set: { dateInput.location = $0 }
+                    ),
+                    selectedLatitude: Binding(
+                        get: { dateInput.latitude == 0 ? nil : dateInput.latitude },
+                        set: { dateInput.latitude = $0 ?? 0 }
+                    ),
+                    selectedLongitude: Binding(
+                        get: { dateInput.longitude == 0 ? nil : dateInput.longitude },
+                        set: { dateInput.longitude = $0 ?? 0 }
+                    ),
+                    isPresented: $showingLocationSearch
+                )
+            }
             
             DatePicker("Date", selection: $dateInput.date, displayedComponents: .date)
                 .datePickerStyle(.compact)
